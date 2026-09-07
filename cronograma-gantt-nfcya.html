@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma de práctica académica · NFCYa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <style>
+        :root {
+            --paper: #EFEDE3;
+            --paper-raised: #F8F7F1;
+            --ink: #1B2430;
+            --ink-soft: #5B6472;
+            --line: #D8D5C7;
+            --line-strong: #B9B6A6;
+
+            --f1: #57616B;
+            --f1-bg: #57616B1a;
+            --f2: #2E7D6B;
+            --f2-bg: #2E7D6B1a;
+            --f3: #35528C;
+            --f3-bg: #35528C1a;
+            --f4: #B8862E;
+            --f4-bg: #B8862E1a;
+            --f5: #9C4B3F;
+            --f5-bg: #9C4B3F1a;
+
+            --serif: 'Source Serif 4', Georgia, serif;
+            --sans: 'IBM Plex Sans', Arial, sans-serif;
+            --mono: 'IBM Plex Mono', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 48px 28px 80px;
+        }
+
+        header.hero {
+            border-bottom: 1px solid var(--line-strong);
+            padding-bottom: 28px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .hero-text h1 {
+            font-family: var(--serif);
+            font-weight: 600;
+            font-size: clamp(28px, 4vw, 40px);
+            margin: 0 0 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .hero-text p {
+            margin: 0;
+            color: var(--ink-soft);
+            font-size: 15px;
+        }
+
+        .hero-meta {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink-soft);
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        .hero-meta strong {
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .legend-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--paper-raised);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            max-width: 280px;
+        }
+
+        .legend-swatch {
+            width: 10px;
+            height: 10px;
+            flex: none;
+            border-radius: 2px;
+        }
+
+        .legend-chip .lbl {
+            font-weight: 600;
+        }
+
+        .legend-chip .rng {
+            display: block;
+            color: var(--ink-soft);
+            font-family: var(--mono);
+            font-size: 11px;
+            margin-top: 1px;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .toolbar h2 {
+            font-family: var(--serif);
+            font-size: 19px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button.export-btn {
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--ink);
+            color: var(--paper-raised);
+            border: 1px solid var(--ink);
+            border-radius: 3px;
+            padding: 9px 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: transform .12s ease, background .12s ease;
+        }
+
+        button.export-btn:hover {
+            background: #33404f;
+        }
+
+        button.export-btn:active {
+            transform: scale(0.97);
+        }
+
+        button.export-btn.ghost {
+            background: transparent;
+            color: var(--ink);
+        }
+
+        button.export-btn.ghost:hover {
+            background: var(--paper-raised);
+        }
+
+        button.export-btn svg {
+            width: 14px;
+            height: 14px;
+            flex: none;
+        }
+
+        button.export-btn .caret {
+            font-size: 9px;
+            margin-left: 1px;
+            opacity: .75;
+        }
+
+        .export-group {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 230px;
+            background: var(--paper-raised);
+            border: 1px solid var(--line-strong);
+            border-radius: 5px;
+            box-shadow: 0 10px 26px rgba(27, 36, 48, .16);
+            padding: 6px;
+            display: none;
+            z-index: 30;
+        }
+
+        .export-menu.open {
+            display: block;
+        }
+
+        .export-menu button {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            background: none;
+            border: none;
+            border-radius: 3px;
+            text-align: left;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+
+        .export-menu button:hover {
+            background: var(--paper);
+        }
+
+        .export-menu button .opt-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .export-menu button .opt-sub {
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin-top: 1px;
+        }
+
+        /* Gantt */
+        .gantt-scroll {
+            overflow-x: auto;
+            border: 1px solid var(--line-strong);
+            background: var(--paper-raised);
+            border-radius: 4px;
+        }
+
+        #gantt-capture {
+            background: var(--paper-raised);
+            padding: 4px;
+            min-width: 1678px;
+        }
+
+        /* Al exportar (fuera de pantalla) se desactiva el "sticky" — sin
+     contenedor con scroll real no tiene sentido y algunos motores de
+     captura lo posicionan mal, desplazando columnas. */
+        .export-flat .g-head,
+        .export-flat .g-cell-label {
+            position: static !important;
+            z-index: auto !important;
+        }
+
+        .g-row {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .g-row {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .g-head {
+            border-bottom: 1px solid var(--line-strong);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--paper-raised);
+        }
+
+        .g-cell-label {
+            flex: 0 0 250px;
+            width: 250px;
+            padding: 10px 14px;
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background: var(--paper-raised);
+            border-right: 1px solid var(--line-strong);
+        }
+
+        .g-head .g-cell-label {
+            font-family: var(--mono);
+            font-size: 10.5px;
+            color: var(--ink-soft);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            z-index: 3;
+        }
+
+        .g-row .g-task-name {
+            font-weight: 500;
+        }
+
+        .g-week-head {
+            flex: 0 0 84px;
+            width: 84px;
+            padding: 8px 4px 7px;
+            text-align: center;
+            border-left: 1px solid var(--line);
+        }
+
+        .g-week-head .wk {
+            font-family: var(--sans);
+            font-weight: 600;
+            font-size: 11px;
+            color: var(--ink);
+        }
+
+        .g-week-head .dt {
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--ink-soft);
+            display: block;
+            margin-top: 3px;
+            white-space: nowrap;
+        }
+
+        .g-week-cell {
+            flex: 0 0 84px;
+            width: 84px;
+            border-left: 1px solid var(--line);
+            position: relative;
+            min-height: 38px;
+        }
+
+        .g-bar {
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 3px;
+            right: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06);
+        }
+
+        .g-bar.start {
+            left: 3px;
+            border-top-left-radius: 3px;
+            border-bottom-left-radius: 3px;
+        }
+
+        .g-bar.mid {
+            left: 0;
+            right: 0;
+            border-radius: 0;
+        }
+
+        .g-bar.end {
+            right: 3px;
+            border-top-right-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        .g-bar.solo {
+            border-radius: 3px;
+        }
+
+        .g-milestone {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14px;
+            height: 14px;
+            transform: translate(-50%, -50%) rotate(45deg);
+            border-radius: 2px;
+        }
+
+        /* Weekly detail */
+        .detail-section {
+            margin-top: 34px;
+        }
+
+        .detail-toggle {
+            background: none;
+            border: none;
+            font-family: var(--serif);
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-toggle .chev {
+            transition: transform .18s ease;
+            font-size: 13px;
+            color: var(--ink-soft);
+        }
+
+        .detail-toggle.open .chev {
+            transform: rotate(90deg);
+        }
+
+        .detail-list {
+            margin-top: 16px;
+            display: none;
+            border-top: 1px solid var(--line-strong);
+        }
+
+        .detail-list.open {
+            display: block;
+        }
+
+        .detail-item {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 18px;
+            padding: 14px 4px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .detail-item .dw {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--ink-soft);
+            padding-top: 1px;
+        }
+
+        .detail-item .dw b {
+            display: block;
+            font-family: var(--sans);
+            font-size: 14px;
+            color: var(--ink);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .detail-item p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        footer {
+            margin-top: 44px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+            font-size: 12px;
+            color: var(--ink-soft);
+        }
+
+        @media (max-width:640px) {
+            .hero-meta {
+                text-align: left;
+            }
+
+            header.hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .detail-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <header class="hero">
+            <div class="hero-text">
+                <h1>Cronograma de práctica académica</h1>
+                <p>Proyecto NFCYa · Formalización, diagnóstico y desarrollo tecnológico</p>
+            </div>
+            <div class="hero-meta">
+                <div><strong>04 ago</strong> – <strong>27 nov 2026</strong></div>
+                <div>17 semanas · 5 fases · 11 actividades</div>
+            </div>
+        </header>
+
+        <div class="legend" id="legend"></div>
+
+        <div class="toolbar">
+            <h2>Diagrama de Gantt</h2>
+            <div class="btn-row">
+
+                <div class="export-group" data-kind="img">
+                    <button class="export-btn main-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                        Imagen <span class="caret">▾</span>
+                    </button>
+                    <div class="export-menu">
+                        <button type="button" data-scope="full"><span class="opt-title">Completo</span><span
+                                class="opt-sub">Títulos, fases, Gantt y detalle semanal</span></button>
+                        <button type="button" data-scope="diagram"><span class="opt-title">Diagrama</span><span
+                                class="opt-sub">Títulos, fases y Gantt</span></button>
+                        <button type="button" data-scope="detail"><span class="opt-title">Detalle semanal</span><span
+                                class="opt-sub">Solo el desglose por semana</span></button>
+                    </div>
+                </div>
+
+                <div class="export-group" data-kind="pdf">
+                    <button class="export-btn main-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <path d="M14 2v6h6" />
+                        </svg>
+                        PDF <span class="caret">▾</span>
+                    </button>
+                    <div class="export-menu">
+                        <button type="button" data-scope="full"><span class="opt-title">Completo</span><span
+                                class="opt-sub">Títulos, fases, Gantt y detalle semanal</span></button>
+                        <button type="button" data-scope="diagram"><span class="opt-title">Diagrama</span><span
+                                class="opt-sub">Títulos, fases y Gantt</span></button>
+                        <button type="button" data-scope="detail"><span class="opt-title">Detalle semanal</span><span
+                                class="opt-sub">Solo el desglose por semana</span></button>
+                    </div>
+                </div>
+
+                <div class="export-group" data-kind="xlsx">
+                    <button class="export-btn ghost main-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M3 9h18M9 21V9" />
+                        </svg>
+                        Excel <span class="caret">▾</span>
+                    </button>
+                    <div class="export-menu">
+                        <button type="button" data-scope="full"><span class="opt-title">Completo</span><span
+                                class="opt-sub">Hojas:
+                                Gantt, Fases y Detalle semanal</span></button>
+                        <button type="button" data-scope="diagram"><span class="opt-title">Diagrama</span><span
+                                class="opt-sub">Hojas: Gantt y Fases</span></button>
+                        <button type="button" data-scope="detail"><span class="opt-title">Detalle semanal</span><span
+                                class="opt-sub">Solo la hoja de desglose semanal</span></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="gantt-scroll" id="gantt-scroll">
+            <div id="gantt-capture">
+                <div id="gantt-head-row"></div>
+                <div id="gantt-body"></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <button class="detail-toggle" id="detail-toggle">
+                <span class="chev">›</span> Detalle semanal completo
+            </button>
+            <div class="detail-list" id="detail-list"></div>
+        </div>
+
+        <footer>
+            Práctica académica NFCYa — 04 de agosto al 27 de noviembre de 2026.<br>
+            <strong>Thomas Diaz Fuentes - Hammer Johan Estrada Vagner (Prácticas III - Virtual).</strong>
+        </footer>
+
+    </div>
+
+    <script>
+        /* ---------- DATA (contenido preservado del cronograma entregado) ---------- */
+
+        const PHASES = [
+            { id: 'f1', name: 'Formalización y diagnóstico', range: '04 de agosto – 11 de septiembre', color: 'var(--f1)', bg: 'var(--f1-bg)' },
+            { id: 'f2', name: 'Planificación y preparación técnica', range: '07 de septiembre – 25 de septiembre', color: 'var(--f2)', bg: 'var(--f2-bg)' },
+            { id: 'f3', name: 'Diseño y desarrollo de NFCYa', range: '14 de septiembre – 06 de noviembre', color: 'var(--f3)', bg: 'var(--f3-bg)' },
+            { id: 'f4', name: 'Pruebas, optimización y documentación', range: '02 de noviembre – 20 de noviembre', color: 'var(--f4)', bg: 'var(--f4-bg)' },
+            { id: 'f5', name: 'Entrega y cierre de la práctica', range: '23 de noviembre – 27 de noviembre', color: 'var(--f5)', bg: 'var(--f5-bg)' },
+        ];
+
+        const WEEKS = [
+            { n: 1, label: '04–07 Ago.', start: '04/08/2026', end: '07/08/2026' },
+            { n: 2, label: '10–14 Ago.', start: '10/08/2026', end: '14/08/2026' },
+            { n: 3, label: '17–21 Ago.', start: '17/08/2026', end: '21/08/2026' },
+            { n: 4, label: '24–28 Ago.', start: '24/08/2026', end: '28/08/2026' },
+            { n: 5, label: '31 Ago.–04 Sep.', start: '31/08/2026', end: '04/09/2026' },
+            { n: 6, label: '07–11 Sep.', start: '07/09/2026', end: '11/09/2026' },
+            { n: 7, label: '14–18 Sep.', start: '14/09/2026', end: '18/09/2026' },
+            { n: 8, label: '21–25 Sep.', start: '21/09/2026', end: '25/09/2026' },
+            { n: 9, label: '28 Sep.–02 Oct.', start: '28/09/2026', end: '02/10/2026' },
+            { n: 10, label: '05–09 Oct.', start: '05/10/2026', end: '09/10/2026' },
+            { n: 11, label: '12–16 Oct.', start: '12/10/2026', end: '16/10/2026' },
+            { n: 12, label: '19–23 Oct.', start: '19/10/2026', end: '23/10/2026' },
+            { n: 13, label: '26–30 Oct.', start: '26/10/2026', end: '30/10/2026' },
+            { n: 14, label: '02–06 Nov.', start: '02/11/2026', end: '06/11/2026' },
+            { n: 15, label: '09–13 Nov.', start: '09/11/2026', end: '13/11/2026' },
+            { n: 16, label: '16–20 Nov.', start: '16/11/2026', end: '20/11/2026' },
+            { n: 17, label: '23–27 Nov.', start: '23/11/2026', end: '27/11/2026' },
+        ];
+
+        const ACTIVITIES = [
+            { name: 'Formalización de prácticas', start: 1, end: 6, type: 'task', phase: 'f1' },
+            { name: 'Diagnóstico del área', start: 5, end: 6, type: 'task', phase: 'f1' },
+            { name: 'Cronograma y plan de mejoramiento', start: 6, end: 6, type: 'task', phase: 'f2' },
+            { name: 'Sesión inicial', start: 6, end: 6, type: 'milestone', phase: 'f2' },
+            { name: 'Aprendizaje y nivelación tecnológica', start: 7, end: 8, type: 'task', phase: 'f2' },
+            { name: 'Análisis y diseño de NFCYa', start: 7, end: 9, type: 'task', phase: 'f3' },
+            { name: 'Desarrollo funcionalidades base', start: 9, end: 12, type: 'task', phase: 'f3' },
+            { name: 'Desarrollo funcionalidades avanzadas', start: 12, end: 14, type: 'task', phase: 'f3' },
+            { name: 'Pruebas y optimización', start: 14, end: 16, type: 'task', phase: 'f4' },
+            { name: 'Documentación y preparación de entrega', start: 16, end: 17, type: 'task', phase: 'f4' },
+            { name: 'Entrega y cierre', start: 17, end: 17, type: 'milestone', phase: 'f5' },
+        ];
+
+        const WEEKLY_DETAIL = [
+            'Inicio y formalización de prácticas: presentación, revisión de requisitos académicos y definición inicial del proceso de práctica.',
+            'Formalización: gestión y documentación requerida para la vinculación de la práctica.',
+            'Formalización: seguimiento de documentación y definición del contexto de trabajo con la organización.',
+            'Formalización: coordinación con la empresa y universidad para establecer condiciones y alcance inicial de la práctica.',
+            'Diagnóstico: recolección de información, observación del área y entrevista con el responsable de la organización.',
+            'Diagnóstico y planificación: consolidación del diagnóstico, matriz DOFA, elaboración del cronograma y plan de mejoramiento. Sesión inicial con docente y jefe inmediato.',
+            'Aprendizaje tecnológico: nivelación en tecnologías definidas para el proyecto. Análisis técnico y definición de arquitectura de NFCYa.',
+            'Aprendizaje + diseño: profundización en Next.js, NestJS, PostgreSQL y buenas prácticas. Diseño de base de datos, módulos y estructura inicial del proyecto.',
+            'Ejecución: configuración de ambientes y estructura del proyecto. Inicio del desarrollo de autenticación, registro, usuarios y roles/RBAC.',
+            'Ejecución: desarrollo de perfiles digitales, gestión de información, enlaces y estructura pública tipo Linktree.',
+            'Ejecución: desarrollo de dashboard de cliente y dashboard administrativo, aplicando control de acceso y permisos.',
+            'Ejecución: desarrollo de QR, gestión de tarjetas/chips NFC y generación de vCard. Continuación del aprendizaje técnico según necesidades del desarrollo.',
+            'Ejecución: desarrollo de membresías, estados de suscripción y funcionalidades relacionadas con la gestión de planes.',
+            'Ejecución + integración: desarrollo e integración de pagos en línea mediante Wompi y funcionalidades pendientes del MVP.',
+            'Pruebas y optimización: pruebas funcionales, validación de flujos, corrección de errores y revisión de UX/UI para usuarios no técnicos.',
+            'Calidad y documentación: optimización del código, documentación técnica, documentación de funcionalidades y preparación de entregables.',
+            'Cierre de práctica: consolidación de resultados, entrega de productos y documentación, presentación de avances y resultados, reunión final con docente y jefe inmediato y cierre de la práctica.',
+        ];
+
+        const phaseById = Object.fromEntries(PHASES.map(p => [p.id, p]));
+
+        /* ---------- RENDER ---------- */
+
+        function renderLegend() {
+            const el = document.getElementById('legend');
+            el.innerHTML = PHASES.map(p => `
+    <div class="legend-chip">
+      <span class="legend-swatch" style="background:${p.color}"></span>
+      <span>
+        <span class="lbl">${p.name}</span>
+        <span class="rng">${p.range}</span>
+      </span>
+    </div>
+  `).join('');
+        }
+
+        function renderGanttHead() {
+            const el = document.getElementById('gantt-head-row');
+            const weekCols = WEEKS.map(w => `
+    <div class="g-week-head">
+      <span class="wk">S${w.n}</span>
+      <span class="dt">${w.label}</span>
+    </div>
+  `).join('');
+            el.innerHTML = `
+    <div class="g-row g-head">
+      <div class="g-cell-label"><span>Actividad / semana</span></div>
+      ${weekCols}
+    </div>
+  `;
+        }
+
+        function renderGanttBody() {
+            const el = document.getElementById('gantt-body');
+            el.innerHTML = ACTIVITIES.map(act => {
+                const phase = phaseById[act.phase];
+                let cells = '';
+                for (let n = 1; n <= 17; n++) {
+                    if (act.type === 'milestone' && n === act.start) {
+                        cells += `<div class="g-week-cell"><span class="g-milestone" style="background:${phase.color}"></span></div>`;
+                    } else if (act.type === 'task' && n >= act.start && n <= act.end) {
+                        let pos = 'mid';
+                        if (act.start === act.end) pos = 'solo';
+                        else if (n === act.start) pos = 'start';
+                        else if (n === act.end) pos = 'end';
+                        cells += `<div class="g-week-cell"><span class="g-bar ${pos}" style="background:${phase.color}"></span></div>`;
+                    } else {
+                        cells += `<div class="g-week-cell"></div>`;
+                    }
+                }
+                return `
+      <div class="g-row">
+        <div class="g-cell-label g-task-name"><span>${act.name}</span></div>
+        ${cells}
+      </div>
+    `;
+            }).join('');
+        }
+
+        function renderDetail() {
+            const el = document.getElementById('detail-list');
+            el.innerHTML = WEEKS.map((w, i) => `
+    <div class="detail-item">
+      <div class="dw"><b>Semana ${w.n}</b>${w.label}</div>
+      <p>${WEEKLY_DETAIL[i]}</p>
+    </div>
+  `).join('');
+        }
+
+        renderLegend();
+        renderGanttHead();
+        renderGanttBody();
+        renderDetail();
+
+        document.getElementById('detail-toggle').addEventListener('click', function () {
+            this.classList.toggle('open');
+            document.getElementById('detail-list').classList.toggle('open');
+        });
+
+        /* ---------- EXPORTS ---------- */
+
+        const PHASE_HEX = { f1: '57616B', f2: '2E7D6B', f3: '35528C', f4: 'B8862E', f5: '9C4B3F' };
+        const SCOPE_LABEL = { full: 'completo', diagram: 'diagrama', detail: 'detalle-semanal' };
+        const SCOPE_TITLE = { full: 'Cronograma completo', diagram: 'Diagrama de Gantt', detail: 'Detalle semanal completo' };
+
+        // Construye, fuera de la vista, una versión autocontenida de la sección
+        // solicitada (sin el recorte por scroll ni los botones), para que al
+        // exportar cada borde y línea se extienda exactamente hasta el borde
+        // real del contenido, sin importar qué tan ancho sea el diagrama.
+        // Evita IDs duplicados en el DOM mientras el nodo clonado está montado.
+        function stripIds(el) {
+            el.removeAttribute('id');
+            el.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); });
+        }
+
+        // Refuerzo para exportar: además de la clase .export-flat, fija por
+        // JavaScript estilos inline con colores literales (sin var(), sin
+        // sticky/z-index, sin depender del selector "+") directamente sobre los
+        // nodos clonados. Así la cuadrícula y la columna de etiquetas no dependen
+        // de que el motor de captura interprete igual que el navegador el CSS
+        // de la página en vivo.
+        function flattenGanttForExport(scrollClone) {
+            scrollClone.classList.add('export-flat');
+
+            scrollClone.querySelectorAll('.g-head').forEach(function (el) {
+                el.style.position = 'static';
+                el.style.top = 'auto';
+                el.style.zIndex = 'auto';
+                el.style.background = '#F8F7F1';
+                el.style.borderBottom = '1px solid #B9B6A6';
+            });
+
+            scrollClone.querySelectorAll('.g-cell-label').forEach(function (el) {
+                el.style.position = 'static';
+                el.style.left = 'auto';
+                el.style.zIndex = 'auto';
+                el.style.background = '#F8F7F1';
+                el.style.borderRight = '1px solid #B9B6A6';
+            });
+
+            scrollClone.querySelectorAll('.g-week-head, .g-week-cell').forEach(function (el) {
+                el.style.borderLeft = '1px solid #D8D5C7';
+            });
+
+            scrollClone.querySelectorAll('.g-row').forEach(function (el) {
+                el.style.borderBottom = '1px solid #D8D5C7';
+            });
+        }
+
+        function buildExportNode(scope) {
+            const root = document.createElement('div');
+            root.style.cssText = `
+    position:fixed; top:0; left:0; z-index:99999;
+    display:inline-block;
+    width:max-content;
+    background:var(--paper);
+    padding:36px 40px 44px;
+    font-family:var(--sans);
+    color:var(--ink);
+  `;
+
+            const titleWrap = document.createElement('div');
+            titleWrap.style.cssText = `
+    border-bottom:1px solid var(--line-strong);
+    padding-bottom:20px; margin-bottom:22px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:20px; flex-wrap:wrap;
+  `;
+            titleWrap.innerHTML = `
+    <div>
+      <div style="font-family:var(--serif); font-weight:600; font-size:30px; margin-bottom:6px; white-space:nowrap;">Cronograma de práctica académica</div>
+      <div style="color:var(--ink-soft); font-size:14px; white-space:nowrap;">Proyecto NFCYa · ${SCOPE_TITLE[scope]}</div>
+    </div>
+    <div style="font-family:var(--mono); font-size:12px; color:var(--ink-soft); text-align:right; line-height:1.7; white-space:nowrap;">
+      <div>04 ago – 27 nov 2026</div>
+      <div>17 semanas · 5 fases · 11 actividades</div>
+    </div>
+  `;
+            root.appendChild(titleWrap);
+
+            if (scope === 'full' || scope === 'diagram') {
+                const legendClone = document.getElementById('legend').cloneNode(true);
+                stripIds(legendClone);
+                legendClone.style.marginBottom = '24px';
+                root.appendChild(legendClone);
+
+                const scrollClone = document.getElementById('gantt-scroll').cloneNode(true);
+                stripIds(scrollClone);
+                flattenGanttForExport(scrollClone);
+                scrollClone.style.overflow = 'visible';
+                scrollClone.style.display = 'block';
+                scrollClone.style.width = '1678px';
+                scrollClone.style.minWidth = '1678px';
+                scrollClone.style.boxSizing = 'border-box';
+                scrollClone.style.background = '#F8F7F1';
+                scrollClone.style.border = '1px solid #B9B6A6';
+                scrollClone.style.borderRadius = '0';
+
+                const ganttClone = scrollClone.querySelector('#gantt-capture');
+                if (ganttClone) {
+                    ganttClone.style.width = '1670px';
+                    ganttClone.style.minWidth = '1670px';
+                    ganttClone.style.padding = '4px';
+                    ganttClone.style.background = '#F8F7F1';
+                    ganttClone.style.boxSizing = 'border-box';
+                }
+
+                // Fuerza las dimensiones de la columna de actividad y de las 17 semanas.
+                scrollClone.querySelectorAll('.g-cell-label').forEach(function (el) {
+                    el.style.flex = '0 0 250px';
+                    el.style.width = '250px';
+                    el.style.minWidth = '250px';
+                    el.style.maxWidth = '250px';
+                    el.style.overflow = 'visible';
+                    el.style.whiteSpace = 'normal';
+                });
+                scrollClone.querySelectorAll('.g-week-head, .g-week-cell').forEach(function (el) {
+                    el.style.flex = '0 0 84px';
+                    el.style.width = '84px';
+                    el.style.minWidth = '84px';
+                    el.style.maxWidth = '84px';
+                    el.style.boxSizing = 'border-box';
+                    el.style.borderLeft = '1px solid #D8D5C7';
+                });
+                scrollClone.querySelectorAll('.g-row').forEach(function (row) {
+                    row.style.display = 'flex';
+                    row.style.width = '1670px';
+                    row.style.minWidth = '1670px';
+                    row.style.borderBottom = '1px solid #D8D5C7';
+                });
+                scrollClone.querySelectorAll('.g-head').forEach(function (head) {
+                    head.style.width = '1670px';
+                    head.style.minWidth = '1670px';
+                });
+                root.appendChild(scrollClone);
+            }
+
+            if (scope === 'full' || scope === 'detail') {
+                const detailWrap = document.createElement('div');
+                detailWrap.style.marginTop = (scope === 'full') ? '34px' : '0';
+
+                const h = document.createElement('div');
+                h.style.cssText = 'font-family:var(--serif); font-size:19px; font-weight:600; margin-bottom:12px;';
+                h.textContent = 'Detalle semanal completo';
+                detailWrap.appendChild(h);
+
+                const listClone = document.getElementById('detail-list').cloneNode(true);
+                stripIds(listClone);
+                listClone.classList.add('open');
+                listClone.style.display = 'block';
+                listClone.style.width = '760px';
+                listClone.style.borderTop = '1px solid var(--line-strong)';
+                detailWrap.appendChild(listClone);
+
+                root.appendChild(detailWrap);
+            }
+
+            const exportFooter = document.createElement('div');
+            exportFooter.style.cssText = `
+    margin-top:28px;
+    padding-top:14px;
+    border-top:1px solid #D8D5C7;
+    font-family:var(--sans);
+    font-size:11px;
+    line-height:1.5;
+    color:#5B6472;
+  `;
+            exportFooter.innerHTML = `
+    Práctica académica NFCYa — 04 de agosto al 27 de noviembre de 2026.<br>
+    <strong style="color:#1B2430;">Thomas Diaz Fuentes - Hammer Johan Estrada Vagner (Prácticas III - Virtual).</strong>
+  `;
+            root.appendChild(exportFooter);
+
+            document.body.appendChild(root);
+            return root;
+        }
+
+        function captureScope(scope) {
+            const node = buildExportNode(scope);
+            return new Promise(function (resolve, reject) {
+                var cleanup = function () { if (node.parentNode) node.parentNode.removeChild(node); };
+                var capture = function () {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            html2canvas(node, {
+                                backgroundColor: '#EFEDE3', scale: 2, useCORS: true, logging: false,
+                                width: node.scrollWidth, height: node.scrollHeight
+                            }).then(function (canvas) { cleanup(); resolve(canvas); })
+                                .catch(function (err) { cleanup(); reject(err); });
+                        });
+                    });
+                };
+                if (document.fonts && document.fonts.ready) document.fonts.ready.then(capture).catch(capture);
+                else capture();
+            })
+                .then(function (canvas) { return canvas; })
+                ;
+        }
+
+        function downloadImage(canvas, scope) {
+            const link = document.createElement('a');
+            link.download = 'cronograma-nfcya-' + SCOPE_LABEL[scope] + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadPdf(canvas, scope) {
+            const { jsPDF } = window.jspdf;
+            const orientation = (scope === 'detail') ? 'portrait' : 'landscape';
+            const pdf = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const margin = 24;
+            const availW = pageW - margin * 2;
+            const availH = pageH - margin * 2;
+
+            // Escala la imagen al ancho disponible y la reparte en tantas páginas
+            // como haga falta, sin cortar ninguna sección a la mitad de una línea.
+            const ratio = availW / canvas.width;
+            const pageCanvasHeight = availH / ratio;
+
+            let renderedHeight = 0;
+            let first = true;
+            while (renderedHeight < canvas.height) {
+                const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+                const sliceCanvas = document.createElement('canvas');
+                sliceCanvas.width = canvas.width;
+                sliceCanvas.height = sliceHeight;
+                sliceCanvas.getContext('2d').drawImage(
+                    canvas, 0, renderedHeight, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight
+                );
+                if (!first) pdf.addPage();
+                pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, margin, availW, sliceHeight * ratio);
+                first = false;
+                renderedHeight += sliceHeight;
+            }
+            pdf.save('cronograma-nfcya-' + SCOPE_LABEL[scope] + '.pdf');
+        }
+
+        async function buildWorkbook(scope) {
+            const wb = new ExcelJS.Workbook();
+            wb.creator = 'NFCYa';
+            const thinBorder = { style: 'thin', color: { argb: 'FFB9B6A6' } };
+            const cellBorder = { top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder };
+            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B2430' } };
+            const headerFont = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+            function styleHeaderRow(row) {
+                row.eachCell(function (cell) {
+                    cell.font = headerFont;
+                    cell.fill = headerFill;
+                    cell.border = cellBorder;
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                });
+                row.height = 30;
+            }
+
+            if (scope === 'full' || scope === 'diagram') {
+                const ws = wb.addWorksheet('Gantt');
+                styleHeaderRow(ws.addRow(['Actividad', 'Fase', ...WEEKS.map(function (w) { return 'S' + w.n + ' (' + w.label + ')'; })]));
+                ws.getColumn(1).width = 34;
+                ws.getColumn(2).width = 28;
+                for (let c = 3; c <= 19; c++) ws.getColumn(c).width = 12;
+
+                ACTIVITIES.forEach(function (act) {
+                    const hex = 'FF' + PHASE_HEX[act.phase];
+                    const values = [act.name, phaseById[act.phase].name];
+                    for (let n = 1; n <= 17; n++) {
+                        if (act.type === 'milestone' && n === act.start) values.push('◆ Hito');
+                        else if (act.type === 'task' && n >= act.start && n <= act.end) values.push('■');
+                        else values.push('');
+                    }
+                    const row = ws.addRow(values);
+                    row.height = 22;
+                    row.eachCell(function (cell, colNumber) {
+                        cell.border = cellBorder;
+                        cell.alignment = { vertical: 'middle', horizontal: colNumber <= 2 ? 'left' : 'center' };
+                        if (colNumber === 2) {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: hex } };
+                            cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+                        } else if (colNumber > 2) {
+                            const weekN = colNumber - 2;
+                            const active = (act.type === 'milestone' && weekN === act.start) ||
+                                (act.type === 'task' && weekN >= act.start && weekN <= act.end);
+                            if (active) {
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: hex } };
+                                cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+                            }
+                        }
+                    });
+                });
+                ws.views = [{ state: 'frozen', xSplit: 2, ySplit: 1 }];
+
+                const wsF = wb.addWorksheet('Fases');
+                styleHeaderRow(wsF.addRow(['Fase', 'Rango de fechas']));
+                wsF.getColumn(1).width = 42;
+                wsF.getColumn(2).width = 36;
+                PHASES.forEach(function (p) {
+                    const row = wsF.addRow([p.name, p.range]);
+                    row.height = 22;
+                    row.eachCell(function (cell, colNumber) {
+                        cell.border = cellBorder;
+                        cell.alignment = { vertical: 'middle' };
+                        if (colNumber === 1) {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + PHASE_HEX[p.id] } };
+                            cell.font = { color: { argb: 'FFFFFFFF' }, bold: true };
+                        }
+                    });
+                });
+            }
+
+            if (scope === 'full' || scope === 'detail') {
+                const wsD = wb.addWorksheet('Detalle semanal');
+                styleHeaderRow(wsD.addRow(['Semana', 'Inicio', 'Fin', 'Actividades principales']));
+                wsD.getColumn(1).width = 9;
+                wsD.getColumn(2).width = 13;
+                wsD.getColumn(3).width = 13;
+                wsD.getColumn(4).width = 95;
+                WEEKS.forEach(function (w, i) {
+                    const row = wsD.addRow([w.n, w.start, w.end, WEEKLY_DETAIL[i]]);
+                    row.eachCell(function (cell, colNumber) {
+                        cell.border = cellBorder;
+                        cell.alignment = colNumber === 4
+                            ? { wrapText: true, vertical: 'top' }
+                            : { vertical: 'top', horizontal: 'center' };
+                    });
+                });
+                wsD.views = [{ state: 'frozen', ySplit: 1 }];
+            }
+
+            return wb;
+        }
+
+        async function exportExcel(scope) {
+            const wb = await buildWorkbook(scope);
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cronograma-nfcya-' + SCOPE_LABEL[scope] + '.xlsx';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function runExport(kind, scope) {
+            if (kind === 'xlsx') {
+                exportExcel(scope);
+                return;
+            }
+            captureScope(scope).then(function (canvas) {
+                if (kind === 'img') downloadImage(canvas, scope);
+                else downloadPdf(canvas, scope);
+            });
+        }
+
+        document.querySelectorAll('.export-group').forEach(function (group) {
+            const mainBtn = group.querySelector('.main-btn');
+            const menu = group.querySelector('.export-menu');
+            mainBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                document.querySelectorAll('.export-menu.open').forEach(function (m) {
+                    if (m !== menu) m.classList.remove('open');
+                });
+                menu.classList.toggle('open');
+            });
+            menu.querySelectorAll('button').forEach(function (optBtn) {
+                optBtn.addEventListener('click', function () {
+                    menu.classList.remove('open');
+                    runExport(group.dataset.kind, optBtn.dataset.scope);
+                });
+            });
+        });
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.export-menu.open').forEach(function (m) { m.classList.remove('open'); });
+        });
+    </script>
+</body>
+
+</html>
